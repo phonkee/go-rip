@@ -27,7 +27,7 @@ func New(baseUrl ...string) (result Client) {
 		url:       new(url.URL),
 		headers:   http.Header{},
 		data:      []byte{},
-		client:    &http.Client{},
+		client:    func() *http.Client { return &http.Client{} },
 		userAgent: DEFAULT_USER_AGENT,
 		urlValues: url.Values{},
 	}
@@ -46,7 +46,7 @@ type client struct {
 	method      string
 	headers     http.Header
 	data        []byte
-	client      *http.Client
+	client      func() *http.Client
 	userAgent   string
 	urlValues   url.Values
 }
@@ -64,9 +64,10 @@ func (c client) Base(baseUrl string) Client {
 	return c
 }
 
-// Clients sets http client
-func (c client) Client(httpClient *http.Client) Client {
-	c.client = httpClient
+// Clients sets http client function. This function is called every `Do` call so we use new client.
+// This is needed in environment where we share client across goroutines
+func (c client) Client(httpClientFunc func() *http.Client) Client {
+	c.client = httpClientFunc
 	return c
 }
 
@@ -92,8 +93,11 @@ func (c client) Do(ctx context.Context, target ...interface{}) Response {
 
 	request := c.Request().WithContext(ctx)
 
+	// Instantiate http client
+	httpClient := c.client()
+
 	// make a http call
-	if httpResponse, httpError := c.client.Do(request); httpError != nil {
+	if httpResponse, httpError := httpClient.Do(request); httpError != nil {
 		response.error = httpError
 		return response
 	} else {

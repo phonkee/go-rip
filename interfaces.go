@@ -18,7 +18,7 @@ type Client interface {
 	Base(string) Client
 
 	// Client override default http client.
-	Client(client *http.Client) Client
+	Client(func() *http.Client) Client
 
 	// Data sets data to be marshalled to json
 	Data(interface{}) Client
