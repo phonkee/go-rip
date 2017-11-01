@@ -23,6 +23,9 @@ type Client interface {
 	// Data sets data to be marshalled to json
 	Data(interface{}) Client
 
+	// FromResponse constructs Response from *http.Response
+	FromResponse(hr *http.Response) Response
+
 	// Do performs request and returns Response
 	Do(ctx context.Context, target ...interface{}) Response
 
