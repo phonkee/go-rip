@@ -87,22 +87,9 @@ func (c client) Data(data interface{}) Client {
 	return c
 }
 
-// Do performs request and returns Response
-func (c client) Do(ctx context.Context, target ...interface{}) Response {
+func (c client ) FromResponse(hr *http.Response) Response {
 	response := newResponse(c)
-
-	request := c.Request().WithContext(ctx)
-
-	// Instantiate http client
-	httpClient := c.client()
-
-	// make a http call
-	if httpResponse, httpError := httpClient.Do(request); httpError != nil {
-		response.error = httpError
-		return response
-	} else {
-		response.response = httpResponse
-	}
+	response.response = hr
 
 	var (
 		body []byte
@@ -117,9 +104,28 @@ func (c client) Do(ctx context.Context, target ...interface{}) Response {
 
 	defer response.response.Body.Close()
 
+	return response
+}
+
+
+// Do performs request and returns Response
+func (c client) Do(ctx context.Context, target ...interface{}) Response {
+	response := newResponse(c)
+
+	request := c.Request().WithContext(ctx)
+
+	// Instantiate http client
+	httpClient := c.client()
+
 	var result Response
 
-	result = response
+	// make a http call
+	if httpResponse, httpError := httpClient.Do(request); httpError != nil {
+		response.error = httpError
+		return response
+	} else {
+		result = c.FromResponse(httpResponse)
+	}
 
 	// now unmarshal from json response all passed targets
 	for _, t := range target {
