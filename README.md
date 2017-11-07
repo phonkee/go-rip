@@ -1,5 +1,6 @@
 # go-rip
 [![Build Status](https://travis-ci.org/phonkee/go-rip.svg?branch=master)](https://travis-ci.org/phonkee/go-rip)
+[![Coverage Status](https://coveralls.io/repos/github/phonkee/go-rip/badge.svg?branch=master)](https://coveralls.io/github/phonkee/go-rip?branch=master)
 
 Small library for making json rest calls.
 go-rip provides fluent chainable api that makes doing rest calls reslly simple.
