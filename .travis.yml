@@ -1,0 +1,6 @@
+language: go
+
+go:
+  - 1.9
+script:
+  - $HOME/gopath/bin/goveralls -service=travis-ci

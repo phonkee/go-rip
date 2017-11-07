@@ -1,4 +1,5 @@
 # go-rip
+[![Build Status](https://travis-ci.org/phonkee/go-rip.svg?branch=master)](https://travis-ci.org/phonkee/go-rip)
 
 Small library for making json rest calls.
 go-rip provides fluent chainable api that makes doing rest calls reslly simple.
@@ -42,7 +43,7 @@ type Product struct {}
 
 product = Product{}
 status := 0
-if err := client.Get("product", 1).Do(context.Background(), &product).Status(&status); err != nil {
+if err := client.Get("product", 1).Do(context.Background(), &product).Status(&status).Error(); err != nil {
     panic("oops")
 }
 ```
@@ -58,7 +59,7 @@ Let's make a POST request with some data.
 ```go
 product = Product{}
 result = map[string]interface{}
-if err := client.Post("product", 1).Data(product).Do(context.Background(), &result); err != nil {
+if err := client.Post("product", 1).Data(product).Do(context.Background(), &result).Error(); err != nil {
     panic(err)
 }
 ```
