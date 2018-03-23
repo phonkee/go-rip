@@ -65,7 +65,6 @@ func TestClient(t *testing.T) {
 		}).QueryValues(nil)
 
 		So(client2.URL().String(), ShouldEqual, "http://127.0.0.1/api/v1/")
-
 	})
 
 	Convey("Test Method", t, func() {

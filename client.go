@@ -13,7 +13,7 @@ import (
 )
 
 const (
-	DEFAULT_USER_AGENT = "rip-1.0"
+	DefaultUserAgent = "rip-1.0"
 )
 
 // New returns new client
@@ -24,12 +24,12 @@ const (
 func New(baseUrl ...string) (result Client) {
 	result = client{
 		base:      new(url.URL),
-		url:       new(url.URL),
 		headers:   http.Header{},
 		data:      []byte{},
 		client:    func() *http.Client { return &http.Client{} },
-		userAgent: DEFAULT_USER_AGENT,
+		userAgent: DefaultUserAgent,
 		urlValues: url.Values{},
+		parts:     make([]string, 0),
 	}
 
 	if len(baseUrl) > 0 {
@@ -42,13 +42,13 @@ func New(baseUrl ...string) (result Client) {
 type client struct {
 	appendSlash bool
 	base        *url.URL
-	url         *url.URL
 	method      string
 	headers     http.Header
 	data        []byte
 	client      func() *http.Client
 	userAgent   string
 	urlValues   url.Values
+	parts       []string
 }
 
 // AppendSlash sets whether slash should be appended automatically
@@ -87,7 +87,7 @@ func (c client) Data(data interface{}) Client {
 	return c
 }
 
-func (c client ) FromResponse(hr *http.Response) Response {
+func (c client) FromResponse(hr *http.Response) Response {
 	response := newResponse(c)
 	response.response = hr
 
@@ -106,7 +106,6 @@ func (c client ) FromResponse(hr *http.Response) Response {
 
 	return response
 }
-
 
 // Do performs request and returns Response
 func (c client) Do(ctx context.Context, target ...interface{}) Response {
@@ -146,6 +145,7 @@ func (c client) Header(key, value string) Client {
 
 // Method sets http method and adds path parts
 func (c client) Method(method string, parts ...interface{}) Client {
+
 	result := c.Path(parts...).(client)
 	result.method = method
 
@@ -154,22 +154,33 @@ func (c client) Method(method string, parts ...interface{}) Client {
 
 // Path adds path
 func (c client) Path(parts ...interface{}) Client {
-	strParts := []string{}
+	strParts := make([]string, 0)
 
 	for _, part := range parts {
 		strPart := strings.TrimSpace(fmt.Sprintf("%v", part))
+		strPart = strings.TrimLeft(strPart, "/")
+
 		if strPart == "" {
 			continue
 		}
 		strParts = append(strParts, strPart)
 	}
 
-	joined := strings.TrimSpace(strings.Join(strParts, "/"))
-	relative, _ := url.Parse(joined)
+	if len(strParts) == 0 {
+		return c
+	}
 
-	// Should we do this?
+	for i, part := range strParts {
+		if i < len(strParts)-1 {
+			if !strings.HasSuffix(part, "/") {
+				part = part + "/"
+			}
+		}
+
+		c.parts = append(c.parts, part)
+	}
+
 	c.base.Path = strings.TrimRight(c.base.Path, "/") + "/"
-	c.url = relative
 
 	return c
 }
@@ -205,14 +216,18 @@ func (c client) Request() *http.Request {
 
 // URL returns actual url
 func (c client) URL() *url.URL {
-	path := c.url.Path
+	joined := strings.Join(c.parts, "")
 
 	// Should we append slash?
-	if c.appendSlash && path != "" {
-		c.url.Path = strings.TrimRight(c.url.Path, "/") + "/"
+	if c.appendSlash {
+		if joined != "" {
+			joined = strings.TrimRight(joined, "/") + "/"
+		} else {
+			c.base.Path = strings.TrimRight(c.base.Path, "/") + "/"
+		}
 	}
-
-	result := c.base.ResolveReference(c.url)
+	p, _ := url.Parse(joined)
+	result := c.base.ResolveReference(p)
 	result.RawQuery = c.urlValues.Encode()
 
 	return result
