@@ -26,7 +26,13 @@ func New(baseUrl ...string) (result Client) {
 		base:      new(url.URL),
 		headers:   http.Header{},
 		data:      []byte{},
-		client:    func() *http.Client { return &http.Client{} },
+		client: func() *http.Client {
+			return &http.Client{
+				Transport: &http.Transport{
+					DisableKeepAlives: true,
+				},
+			}
+		},
 		userAgent: DefaultUserAgent,
 		urlValues: url.Values{},
 		parts:     make([]string, 0),
@@ -112,6 +118,7 @@ func (c client) Do(ctx context.Context, target ...interface{}) Response {
 	response := newResponse(c)
 
 	request := c.Request().WithContext(ctx)
+	request.Close = true
 
 	// Instantiate http client
 	httpClient := c.client()
