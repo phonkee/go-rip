@@ -17,6 +17,9 @@ type Client interface {
 	// Base sets base url, all rest endpoints are added to this url.
 	Base(string) Client
 
+	// BeforeSend you can change request
+	BeforeSend(func(r *http.Request)) Client
+
 	// Client override default http client.
 	Client(func() *http.Client) Client
 

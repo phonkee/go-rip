@@ -48,6 +48,7 @@ func New(baseUrl ...string) (result Client) {
 type client struct {
 	appendSlash bool
 	base        *url.URL
+	before      func(r *http.Request)
 	method      string
 	headers     http.Header
 	data        []byte
@@ -55,6 +56,12 @@ type client struct {
 	userAgent   string
 	urlValues   url.Values
 	parts       []string
+}
+
+// BeforeSend sets callback before sending request
+func (c client) BeforeSend(bf func(r *http.Request)) Client {
+	c.before = bf
+	return c
 }
 
 // AppendSlash sets whether slash should be appended automatically
@@ -119,6 +126,11 @@ func (c client) Do(ctx context.Context, target ...interface{}) Response {
 
 	request := c.Request().WithContext(ctx)
 	request.Close = true
+
+	// call before callback
+	if c.before != nil {
+		c.before(request)
+	}
 
 	// Instantiate http client
 	httpClient := c.client()
