@@ -81,6 +81,9 @@ type Response interface {
 	// Body returns response body, if there was an error blank []byte will be returned
 	Body() []byte
 
+	// RawBody returns raw body response
+	Raw(*[]byte) Response
+
 	// Client returns original client who made the request. This is useful in retry scenarios.
 	Client() Client
 

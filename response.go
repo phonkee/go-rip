@@ -33,6 +33,12 @@ type response struct {
 	response *http.Response
 }
 
+// Raw sets raw message to given bytes slice
+func (r response) Raw(into *[]byte) Response {
+	*into = r.body
+	return r
+}
+
 // Body returns response body
 func (r response) Body() (result []byte) {
 	return r.body

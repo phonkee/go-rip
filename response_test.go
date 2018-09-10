@@ -18,6 +18,10 @@ func TestResponse(t *testing.T) {
 			So(response.Header(), ShouldNotBeNil)
 			So(response.Do(context.Background()).Body(), ShouldResemble, response.Body())
 
+			var into []byte
+			response.Raw(&into)
+			So(len(into), ShouldBeGreaterThan, 0)
+
 		})
 	})
 }
