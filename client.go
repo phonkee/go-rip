@@ -113,7 +113,7 @@ func (c client) FromResponse(hr *http.Response) Response {
 		return response
 	}
 
-	response.body = body
+	response.body = bytes.TrimSpace(body)
 
 	defer response.response.Body.Close()
 

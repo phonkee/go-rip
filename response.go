@@ -87,6 +87,11 @@ func (r response) Unmarshal(target interface{}) Response {
 		return r
 	}
 
+	// check if there is something to unmarshal
+	if len(r.body) == 0 {
+		return r
+	}
+
 	r.error = json.Unmarshal(r.Body(), target)
 
 	return r
