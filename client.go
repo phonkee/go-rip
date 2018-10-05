@@ -108,14 +108,15 @@ func (c client) FromResponse(hr *http.Response) Response {
 		body []byte
 		err  error
 	)
+
+	defer response.response.Body.Close()
+
 	// read body
 	if body, err = ioutil.ReadAll(response.response.Body); err != nil {
 		return response
 	}
 
 	response.body = bytes.TrimSpace(body)
-
-	defer response.response.Body.Close()
 
 	return response
 }
@@ -126,6 +127,10 @@ func (c client) Do(ctx context.Context, target ...interface{}) Response {
 
 	request := c.Request().WithContext(ctx)
 	request.Close = true
+
+	if request.Body != nil {
+		defer request.Body.Close()
+	}
 
 	// call before callback
 	if c.before != nil {
