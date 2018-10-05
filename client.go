@@ -126,7 +126,6 @@ func (c client) Do(ctx context.Context, target ...interface{}) Response {
 	response := newResponse(c)
 
 	request := c.Request().WithContext(ctx)
-	request.Close = true
 
 	if request.Body != nil {
 		defer request.Body.Close()
